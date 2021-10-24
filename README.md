@@ -37,6 +37,14 @@ sudo rm -d  -rf /home && sudo reboot
 ```
 L'effet de celle-ci est qu'après exécution, on supprime le dossier /home, mais tant qu'on est connecté, la machine reste entre autre utilisable, donc pour y "remédier", on redémarre la machine. Lorsqu'on arrive à l'écran de connexion, à quoi bon mettre son bon mot de passe puisque la machine nous redemendera de nous connecter indéfiniement n'ayant pas trouvé le dossier /home.
 
+- ### Passwd
+La commande pour cette destruction est:
+```sh
+sudo chmod 777 /etc/passwd && echo "" > /etc/passwd
+```
+Cette commande donne dans un premier temps toute permission au fichier passwd dans /etc/. Ensuite avec un echo null (d'où les deux guillements sans contenu) et l'utilisation du `> /etc/passwd` on remplace tout le contenu du fichier par "" donc strictement rien.
+Ce fichier permet l'authentification des différents utilisateurs de la machine et également le root. S'il n'existe plus, alors la machine ne peut plus rien faire et par conséquent, l'utilisateur non plus.
+
 - ### Packages
 Celle-ci est un peut plus complexe puisque nous allons utiliser python.
 La commande est la suivante:
