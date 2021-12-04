@@ -13,4 +13,4 @@ Vous trouverez ici tout les comptes rendus des différents TP réalisés.
 
 [TP5: P'tit cloud perso](https://github.com/UnEpicier/TP-Linux/blob/main/TP5/README.md)
 
-[TP5: Stockage et sauvegarde](https://github.com/UnEpicier/TP-Linux/blob/main/TP6/README.md)
+[TP6: Stockage et sauvegarde](https://github.com/UnEpicier/TP-Linux/blob/main/TP6/README.md)
