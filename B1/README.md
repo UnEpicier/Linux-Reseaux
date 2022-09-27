@@ -1,5 +1,6 @@
 # TP Linux
-Vous trouverez ici tout les comptes rendus des différents TP réalisés.
+
+Vous trouverez ici tout les comptes rendus des différents TP réalisés eb B1.
 
 ---
 
