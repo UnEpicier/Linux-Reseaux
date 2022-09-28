@@ -75,3 +75,94 @@ Pour changer d'adresse IP graphiquement, il faut aller dans les paramètres de l
 🌞 Il est possible que vous perdiez l'accès internet. Pourquoi ?
 
 Parce que l'adresse IP choisie peut être déjà utilisé par un autre ordinateur, ce qui empêche au routeur d'envoyer les requêtes à ce second ordinateur.
+<br/>
+<br/>
+
+## III. Manipulations d'autres outils/protocoles côté client
+
+### 1. DHCP
+
+🌞 Exploration du DHCP, depuis votre PC
+
+- Afficher l'adresse IP du serveur DHCP du réseau WiFi YNOV
+
+Pour le trouver, j'ai voulu utiliser le fichier `.leases` situé (sous Manjaro) dans `/var/lib/dhclient/` avec comme nom `dhclient.<interface>.leases`.
+
+Mais je ne l'avais pas. Pour le créer, j'ai donc fait:
+
+```sh
+$ sudo dhclient -d -nw wlp2s0
+
+Internet Systems Consortium DHCP Client 4.4.3
+Copyright 2004-2022 Internet Systems Consortium.
+All rights reserved.
+For info, please visit https://www.isc.org/software/dhcp/
+
+Listening on LPF/wlp2s0/18:47:3d:40:ed:a7
+Sending on   LPF/wlp2s0/18:47:3d:40:ed:a7
+Sending on   Socket/fallback
+DHCPREQUEST for 10.33.18.142 on wlp2s0 to 255.255.255.255 port 67
+DHCPACK of 10.33.18.142 from 10.33.19.254
+RTNETLINK answers: File exists
+bound to 10.33.18.142 -- renewal in 37385 seconds.
+```
+
+Maintenant que le fichier est généré, on peut déjà l'afficher:
+
+```sh
+$ sudo more /var/lib/dhclient/dhclient.wlp2s0.leases
+
+lease {
+  interface "wlp2s0";
+  fixed-address 10.33.18.142;
+  option subnet-mask 255.255.252.0;
+  option dhcp-lease-time 86400;
+  option routers 10.33.19.254;
+  option dhcp-message-type 5;
+  option dhcp-server-identifier 10.33.19.254;
+  option domain-name-servers 8.8.8.8,8.8.4.4,1.1.1.1;
+  renew 3 2022/09/28 19:29:21;
+  rebind 4 2022/09/29 04:45:37;
+  expire 4 2022/09/29 07:45:37;
+}
+lease {
+  interface "wlp2s0";
+  fixed-address 10.33.18.142;
+  option subnet-mask 255.255.252.0;
+  option routers 10.33.19.254;
+  option dhcp-lease-time 86132;
+  option dhcp-message-type 5;
+  option domain-name-servers 8.8.8.8,8.8.4.4,1.1.1.1;
+  option dhcp-server-identifier 10.33.19.254;
+  renew 3 2022/09/28 18:13:11;
+  rebind 4 2022/09/29 04:46:11;
+  expire 4 2022/09/29 07:45:38;
+}
+(END)
+```
+
+Pour trouver l'adresse IP du serveur DHCP on peut donc utiliser `grep`:
+
+```sh
+$ sudo grep "dhcp-server" /var/lib/dhclient/dhclient.wlp2s0.leases
+
+  option dhcp-server-identifier 10.33.19.254;
+```
+
+On peut donc voir que l'adresse IP est `10.33.19.254`;
+<br/>
+<br/>
+
+- Cette adresse a une durée de vie limitée. C'est le principe du bail DHCP (ou DHCP lease). Trouver la date d'expiration de votre bail DHCP
+
+Dans ce même fichier, on peut voir `expire` suivi d'une date:
+
+```sh
+$ sudo grep "expire" /var/lib/dhclient/dhclient.wlp0s2.leases
+
+  expire 4 2022/09/29 07:45:38;
+```
+
+La date d'expiration est donc pour demain à 07h45.
+
+### 2. DNS
