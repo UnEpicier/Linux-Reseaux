@@ -1,5 +1,5 @@
-# TP Linux
+# Linux & Réseaux
 
-[Projets B1](https://github.com/UnEpicier/TP-Linux/blob/main/B1/README.md)
+[TPs B1](/B1/README.md)
 
-[Projets B2](https://github.com/UnEpicier/TP-Linux/blob/main/B2/README.md)
+[TPs B2](/B2/README.md)
