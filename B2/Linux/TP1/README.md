@@ -2,6 +2,10 @@
 
 ## Sommaire
 
+- [0. Préparation de la machine](#0-préparation-de-la-machine)
+- [I. Création et configuration](#1-création-et-configuration)
+- [1. Interaction avec un service existant](#1-interaction-avec-un-service-existant)
+
 ## 0. Préparation de la machine
 
 🌞 Setup de deux machines Rocky Linux configurées de façon basique.
