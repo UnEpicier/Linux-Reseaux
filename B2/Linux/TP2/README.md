@@ -272,3 +272,203 @@ $ curl 10.102.1.11:8080
   </body>
 </html>
 ```
+
+## II. Un stack web plus avancée
+
+### 2. Setup
+
+#### A. Base de données
+
+🌞 Install de MariaDB sur db.tp2.linux
+
+```sh
+[unepicier@db ~]$ sudo dnf install mariadb-server -y
+[unepicier@db ~]$ sudo systemctl enable mariadb
+[unepicier@db ~]$ sudo systemctl start mariadb
+[unepicier@localhost ~]$ sudo mysql_secure_installation
+...
+Thanks for using MaraiDB!
+```
+
+On récupère le port et on l'autorise dans le firewall
+
+```sh
+[unepicier@localhost ~]$ sudo ss -laputn | grep mariadb
+tcp   LISTEN 0      80                    *:3306            *:*     users:(("mariadbd",pid=3118,fd=19))
+[unepicier@localhost ~]$ sudo firewall-cmd --add-port=3306/tcp --permanent
+success
+[unepicier@localhost ~]$ sudo firewall-cmd --reload
+success
+[unepicier@localhost ~]$ sudo firewall-cmd --list-ports
+22/tcp 3306/tcp
+```
+
+🌞 Préparation de la base pour NextCloud
+
+```sh
+[unepicier@localhost ~]$ sudo mysql -u root -p
+MariaDB [(none)]> CREATE USER 'nextcloud'@'10.102.1.12' IDENTIFIED BY 'nextcloud';
+Query OK, 0 rows affected (0.011 sec)
+
+MariaDB [(none)]> CREATE DATABASE IF NOT EXISTS nextcloud CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+Query OK, 1 row affected (0.000 sec)
+
+MariaDB [(none)]> GRANT ALL PRIVILEGES ON nextcloud.* TO 'nextcloud'@'10.102.1.11';
+Query OK, 0 rows affected (0.011 sec)
+
+MariaDB [(none)]> FLUSH PRIVILEGES;
+Query OK, 0 rows affected (0.001 sec)
+```
+
+🌞 Exploration de la base de données
+
+```sh
+[unepicier@web ~]$ sudo dnf install mysql -y
+[unepicier@web ~]$ mysql -h db.tp2.linux -u nextcloud -p
+Enter password:
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 16
+Server version: 5.5.5-10.5.16-MariaDB MariaDB Server
+
+Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| nextcloud          |
++--------------------+
+2 rows in set (0.00 sec)
+
+mysql> USE nextcloud;
+Database changed
+
+mysql> SHOW TABLES;
+Empty set (0.00 sec)
+```
+
+🌞 Trouver une commande SQL qui permet de lister tous les utilisateurs de la base de données
+
+```sh
+MariaDB [nextcloud]> SELECT Host, User FROM mysql.user;
++-------------+-------------+
+| Host        | User        |
++-------------+-------------+
+| 10.102.1.11 | nextcloud   |
+| localhost   | mariadb.sys |
+| localhost   | mysql       |
+| localhost   | root        |
++-------------+-------------+
+4 rows in set (0.001 sec)
+
+MariaDB [nextcloud]> exit;
+Bye
+
+[unepicier@db ~]$
+```
+
+#### B. Serveur Web et NextCloud
+
+🌞 Install de PHP
+
+```sh
+[unepicier@web ~]$ sudo dnf config-manager --set-enabled crb
+[unepicier@web ~]$ sudo dnf install dnf-utils http://rpms.remirepo.net/enterprise/remi-release-9.rpm -y
+Complete!
+
+[unepicier@web ~]$ sudo dnf module list php
+Remi\'s Modular repository for Enterprise Linux 9 - x86_64
+Name           Stream             Profiles                             Summary
+php            remi-7.4           common [d], devel, minimal           PHP scripting language
+php            remi-8.0           common [d], devel, minimal           PHP scripting language
+php            remi-8.1           common [d], devel, minimal           PHP scripting language
+php            remi-8.2           common [d], devel, minimal           PHP scripting language
+
+Hint: [d]efault, [e]nabled, [x]disabled, [i]nstalled
+
+[unepicier@web ~]$ sudo dnf module enable php:remi-8.1 -y
+Complete!
+
+[unepicier@web ~]$ sudo dnf install -y php81-php
+Complete!
+```
+
+🌞 Install de tous les modules PHP nécessaires pour NextCloud
+
+```sh
+[unepicier@web ~]$ sudo dnf install -y libxml2 openssl php81-php php81-php-ctype php81-php-curl php81-php-gd php81-php-iconv php81-php-json php81-php-libxml php81-php-mbstring php81-php-openssl php81-php-posix php81-php-session php81-php-xml php81-php-zip php81-php-zlib php81-php-pdo php81-php-mysqlnd php81-php-intl php81-php-bcmath php81-php-gmp
+
+Complete!
+```
+
+🌞 Récupérer NextCloud
+
+```sh
+[unepicier@web tp2_nextcloud]$ sudo curl https://download.nextcloud.com/server/prereleases/nextcloud-25.0.0rc3.zip --output nextcloud.zip
+...
+[unepicier@web tp2_nextcloud]$ sudo dnf install unzip -y
+Complete!
+[unepicier@web tp2_nextcloud]$ sudo unzip nextcloud.zip
+[unepicier@web tp2_nextcloud]$ sudo mv ./nextcloud/* ./
+[unepicier@web tp2_nextcloud]$ sudo mv ./nextcloud/.htaccess ./
+[unepicier@web tp2_nextcloud]$ sudo mv ./nextcloud/.user.ini ./
+
+[unepicier@web tp2_nextcloud]$ ls -l | grep index.html
+-rw-r--r--.  1 root root   156 Oct  6 14:42 index.html
+
+[unepicier@web tp2_nextcloud]$ sudo chown -R apache:apache ./tp2_nextcloud/
+
+[unepicier@web tp2_nextcloud]$ ls -l | grep tp2
+drwxr-xr-x. 14 apache apache 4096 Nov 15 12:49 tp2_nextcloud
+```
+
+🌞 Adapter la configuration d'Apache
+
+```sh
+[unepicier@web tp2_nextcloud]$ sudo vim /etc/httpd/conf/httpd.conf
+[unepicier@web tp2_nextcloud]$ sudo vim /etc/httpd/conf.d/nextcloud.conf
+```
+
+🌞 Redémarrer le service Apache pour qu'il prenne en compte le nouveau fichier de conf
+
+```sh
+[unepicier@web tp2_nextcloud]$ sudo systemctl restart httpd
+[unepicier@web tp2_nextcloud]$ curl localhost
+<!DOCTYPE html>
+<html class="ng-csp" data-placeholder-focus="false" lang="en" data-locale="en" >
+    <head
+data-requesttoken="bD2BzdHMjOm3klbwewTSjK4Kc/VuLzmMo/1BLR1R7zk=:Hkvjm5y4vrnOpjuVGVHj+/tnEroZGWC1kJ8xblE7rEA=">
+        <meta charset="utf-8">
+        <title>Nextcloud</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+        <meta name="apple-itunes-app" content="app-id=1125420102">
+        <meta name="theme-color" content="#0082c9">
+        ...
+    </head>
+    <body id="body-login">
+    ...
+    </body>
+</html>
+```
+
+#### C. Finaliser l'installation de NextCloud
+
+🌞 Exploration de la base de données
+
+```sql
+USE nextcloud;
+SELECT COUNT(*) AS 'Tables' FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE';
++----------+
+|  Tables  |
++----------+
+|      124 |
++----------+
+1 row in set (0.00 sec)
+```
