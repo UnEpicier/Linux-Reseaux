@@ -13,3 +13,12 @@
 - Automatisation
   - [Module 6 Automatiser le déploiement](./module6.md)
   - [Module 7 Fail2ban](./module7.md)
+
+## Machines
+
+| Hostname              | IP          |
+| --------------------- | ----------- |
+| web.tp2.linux         | 10.102.1.11 |
+| db.tp2.linux          | 10.102.1.12 |
+| proxy.tp3.linux       | 10.102.1.13 |
+| replication.tp3.linux | 10.102.1.14 |
