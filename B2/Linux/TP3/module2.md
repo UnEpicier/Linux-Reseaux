@@ -333,6 +333,8 @@ Query OK, 0 rows affected (0.001 sec)
 MariaDB [(none)]> GRANT REPLICATION SLAVE ON *.* TO 'master2'@'10.102.1.12';
 Query OK, 0 rows affected (0.011 sec)
 
+MariaDB [(none)]> FLUSH PRIVILEGES;
+
 # Encore une fois on le garde de côté
 MariaDB [(none)]> SHOW MASTER STATUS;
 +-------------------+----------+--------------+------------------+
@@ -351,8 +353,7 @@ Ci-dessous les commandes sql effectuées sur master2 mais sont les mêmes sur ma
 MariaDB [(none)]> STOP SLAVE;
 Query OK, 0 rows affected, 1 warning (0.000 sec)
 
-MariaDB [(none)]> CHANGE MASTER TO MASTER_HOST='10.102.1.12', MASTER_USER='master1', MASTER_PASSWORD='r
-eplication', MASTER_LOG_FILE='master1-bin.000003', MASTER_LOG_POS=563;
+MariaDB [(none)]> CHANGE MASTER TO MASTER_HOST='10.102.1.12', MASTER_USER='master1', MASTER_PASSWORD='replication', MASTER_LOG_FILE='master1-bin.000003', MASTER_LOG_POS=563;
 Query OK, 0 rows affected (0.013 sec)
 
 MariaDB [(none)]> START SLAVE;
@@ -471,6 +472,71 @@ MariaDB [(none)]> SHOW DATABASES;
 ```
 
 Donc ça marche bel et bien !
-Cependant petit détail, on peut voir que master2 n'a toujours pas la db de nextcloud.
-Après avoir un peu cherché, il se trouve qu'il fallait que les deux schémas soit identiques, oui lorsqu'on créer une db l'autre l'as créée mais si une db existe déjà, l'autre va vouloir effectuer une opération dans une table / db qu'il n'as pas.
-Donc je pense qu'il faut comme reset l'install coté DB de nextcloud pour avoir une réplication fonctionnelle.
+
+Cependant, un détail saute au yeux, on n'a toujours pas la db nextcloud sur le serveur de réplication. C'est tout simplement car le serveur master1 (qui reçoit les commandes SQL de nextcloud) fait par exemple une commade `UPDATE` et l'envoie au serveur de réplication (jusque là c'est logique) mais master2 n'a pas la db nextcloud donc ne peux pas effecteur l'opération.
+
+Pour régler ce problème, on peut tout simplement reset l'install de nextcloud (étant donné que nous n'avons rien dessus)
+
+```sh
+[unepicier@db ~]$ mysql -u root -p
+
+MariaDB [(none)]> DROP DATABASE nextcloud;
+Query OK, 124 rows affected (0.346 sec)
+
+MariaDB [(none)]> CREATE DATABASE IF NOT EXISTS nextcloud CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+Query OK, 1 row affected (0.001 sec)
+
+MariaDB [(none)]> GRANT ALL PRIVILEGES ON nextcloud.* TO 'nextcloud'@'10.102.1.11';
+Query OK, 0 rows affected (0.010 sec)
+
+MariaDB [(none)]> FLUSH PRIVILEGES;
+Query OK, 0 rows affected (0.001 sec)
+```
+
+Donc déjà là on devrait avoir la nouvelle db vide sur master2
+
+```sh
+[unepicier@replication ~]$ mysql -u root -p
+
+MariaDB [(none)]> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| nextcloud          |
+| performance_schema |
++--------------------+
+```
+
+Parfait donc maintenant on reset l'install de Nextcloud
+
+```sh
+# On supprime l'ancien nextcloud
+[unepicier@web ~]$ cd /var/wwww
+[unepicier@web www]$ sudo rm -rfd ./tp2_nextcloud
+
+# On installe le nouveau
+[unepicier@web www]$ sudo curl https://download.nextcloud.com/server/prereleases/nextcloud-25.0.0rc3.zip --output tp2_nextcloud.zip
+[unepicier@web www]$ sudo unzip tp2_nextcloud.zip
+[unepicier@web www]$ sudo mv nextcloud tp2_nextcloud
+[unepicier@web www]$ sudo chown -R apache:apache tp2_nextcloud
+
+# On remet la conf correctement pour le https et le reverse proxy
+[unepicier@web www]$ sudo vim config/config.php
+[unepicier@web www]$ cat config/config.php
+  ...
+  'trusted_domains' =>
+  array (
+    0 => 'web.tp2.linux',
+    1 => '10.102.1.13',
+  );
+  ...
+  'overwrite.cli.url' => 'https://web.tp2.linux',
+  'overwriteprotocol' => 'https'
+  ...
+[unepicier@web www]$ sudo systemctl restart httpd
+```
+
+Et enfin, on refait l'install via notre navigateur
+Et voilà !

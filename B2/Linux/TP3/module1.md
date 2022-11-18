@@ -197,13 +197,13 @@ server {
 On informe Nextcloud qu'on travaille maintenant sur du https
 
 ```sh
-[unepicier@proxy ~]$ sudo vim /var/www/tp2_nextcloud/config/config.php
-[unepicier@proxy ~]$ sudo cat /var/www/tp2_nextcloud/config/config.php
+[unepicier@web ~]$ sudo vim /var/www/tp2_nextcloud/config/config.php
+[unepicier@web ~]$ sudo cat /var/www/tp2_nextcloud/config/config.php
 ...
   'overwrite.cli.url' => 'https://web.tp2.linux',
   'overwriteprotocol' => 'https',
 ...
-[unepicier@proxy ~]$ sudo systemctl restart httpd
+[unepicier@web ~]$ sudo systemctl restart httpd
 ```
 
 Et ça fonctionne parfaitement !!
