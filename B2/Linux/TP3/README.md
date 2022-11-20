@@ -22,3 +22,4 @@
 | db.tp2.linux          | 10.102.1.12 |
 | proxy.tp3.linux       | 10.102.1.13 |
 | replication.tp3.linux | 10.102.1.14 |
+| storage.tp3.linux     | 10.102.1.15 |
