@@ -208,6 +208,10 @@ Maintenant, on installe, conf, et lance le serveur nfs
 ```sh
 [unepicier@storage ~]$ sudo dnf install nfs-utils
 
+[unepicier@storage ~]$ sudo mkdir web.tp2.linux
+[unepicier@storage ~]$ sudo useradd backup -m -d /srv/nfs_shares/web.tp2.linux -s /usr/bin/login
+[unepicier@storage ~]$  sudo chown backup:backup /srv/nfs_shares/web.tp2.linux
+
 [unepicier@storage ~]$ sudo vim /etc/exports
 [unepicier@storage ~]$ sudo cat /etc/exports
 /srv/nfs_shares/web.tp2.linux 10.102.1.11(rw,sync,no_subtree_check)
@@ -270,20 +274,12 @@ Maintenant on test
 [unepicier@web ~]$ sudo touch /srv/backup/test.txt
 ```
 
-On regarde si le propiétaire est bien `nobody`
-
-```sh
-[unepicier@web ~]$ ls -l /srv/backup/
-total 0
--rw-r--r--. 1 nobody nobody 0 Nov 20 17:41 test.txt
-```
-
 Et enfin on regarde sur notre machine host
 
 ```sh
 [unepicier@storage nfs_shares]$ ls -l web.tp2.linux/
 total 0
--rw-r--r--. 1 nobody nobody 0 Nov 20 17:41 test.txt
+-rw-r--r--. 1 backup backup 0 Nov 20 17:41 test.txt
 ```
 
 Parfait, mais maintenant, on veut que le dossier sur le client se mount automatiquement au lancement de la machine
@@ -322,6 +318,8 @@ On créer sur l'host le dossier
 
 ```sh
 [unepicier@storage nfs_shares]$ sudo mkdir db.tp2.linux
+[unepicier@storage nfs_shares]$ sudo useradd db_dumps -m -d /srv/nfs_shares/db.tp2.linux -s /usr/bin/nologin
+[unepicier@storage nfs_shares]$ sudo chmod db_dumps:db_dumps db.tp2.linux
 ```
 
 On le rajoute au fichier de conf
@@ -336,6 +334,16 @@ On le rajoute au fichier de conf
 ```
 
 ### Client
+
+Le problème c'est qu'ici, notre user à l'ID 1002 mais sur notre client, il a l'ID 1001, et ça, c'est pas bon, on va donc sur notre client changer l'id de l'user
+
+```sh
+[unepicier@db srv]$ sudo userdel db_dumps
+[unepicier@db srv]$ sudo useradd db_dumps -u 1002 -m -s /srv/db_dumps/ -s /usr/bin/nologin
+
+[unepicier@db srv]$ sudo chown db_dumps:db_dumps db_pass
+[unepicier@db srv]$ sudo chown db_dumps:db_dumps tp3_db_dump.sh
+```
 
 On installe
 
