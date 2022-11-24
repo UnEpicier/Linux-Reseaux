@@ -1,0 +1,26 @@
+{
+	"name": "clock",
+	"version": "1.0.0",
+	"description": "Digital clock web-app",
+	"main": "server.js",
+	"scripts": {
+		"start": "nodemon server.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/UnEpicier/Clock.git"
+	},
+	"author": "Un Épicier",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/UnEpicier/Clock/issues"
+	},
+	"homepage": "https://github.com/UnEpicier/Clock#readme",
+	"dependencies": {
+		"cors": "^2.8.5",
+		"express": "^4.18.1",
+		"express-handlebars": "^6.0.6",
+		"morgan": "^1.10.0",
+		"nodemon": "^2.0.16"
+	}
+}

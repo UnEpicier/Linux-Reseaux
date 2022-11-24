@@ -1,0 +1,6 @@
+services:
+  clock:
+    image: clock-js
+    restart: always
+    ports:
+      - '8080:3000'

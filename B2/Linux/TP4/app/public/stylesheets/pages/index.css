@@ -1,0 +1,87 @@
+.header {
+	display: flex;
+	justify-content: flex-end;
+	padding: 10px;
+	width: 100%;
+}
+
+.toggle {
+	--size: 60px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: var(--size);
+	height: var(--size);
+	border-radius: 50%;
+	background-color: #e63946;
+	box-shadow: 0 0 10px #222;
+	font-size: .9rem;
+	color: #fff;
+	cursor: pointer;
+	transform: rotate(0deg);
+	transition:
+		background-color 1s ease,
+		transform 1s ease;
+	user-select: none;
+}
+
+.toggle.on {
+	background-color: #0ead69;
+}
+
+.toggle.rot {
+	transform: rotate(360deg);
+}
+
+.container {
+	position: relative;
+	transform: translateY(-40%);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+.clock {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 6rem;
+	font-weight: 300;
+	color: #fff;
+}
+
+.ampm {
+	margin-left: 10px;
+	padding: 10px;
+	border-radius: 10px;
+	background-color: #aaa;
+	font-size: 2rem;
+	font-weight: 500;
+	color: #fff;
+}
+
+.date {
+	margin-top: 20px;
+	font-size: 1.5rem;
+	color: #aaa;
+}
+
+@media screen and (max-width: 768px) {
+	.toggle {
+		--size: 50px;
+		font-size: .8rem;
+	}
+
+	.clock {
+		font-size: 4rem;
+	}
+
+	.ampm {
+		font-size: 1.5rem;
+	}
+
+	.date {
+		font-size: 1.2rem;
+	}
+}

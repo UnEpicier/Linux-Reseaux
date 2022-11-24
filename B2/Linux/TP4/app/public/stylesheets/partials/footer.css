@@ -1,0 +1,31 @@
+.footer {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 20px;
+	width: 100%;
+	background-color: #222;
+}
+
+.footer .credits {
+	font-size: 1.1rem;
+	color: #fff;
+}
+
+.footer .code {
+	padding: 5px;
+	border-radius: 5px;
+	background-color: #333;
+	font-size: 1rem;
+	color: #ddd;
+}
+
+@media screen and (max-width: 768px) {
+	.footer .credits {
+		font-size: .9rem;
+	}
+
+	.footer .code {
+		font-size: .8rem;
+	}
+}
