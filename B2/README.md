@@ -14,4 +14,6 @@
 - [TP2: Ethernet, IP et ARP](./R%C3%A9seaux/TP2/README.md)
 - [TP3: On va router des trucs](./R%C3%A9seaux/TP3/README.md)
 
+- [TP5: Projet Jeu en réseau](https://github.com/UnEpicier/Reseaux-GameDev-B2)
+
 [Projet Final Réseaux](https://ytrack.learn.ynov.com/git/AVASSEUR2/Reseaux-GameDev-B2)
